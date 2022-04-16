@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>View All Sub-Categories</title>
+        {% include 'includes.html' %}
+    </head>
+    <body>
+        <div class="container-scroller">
+            <div class="container-fluid page-body-wrapper">
+                {% include 'header.html' %}
+                <div class="main-panel">
+                    <div class="content-wrapper">
+                        <!-- Modal -->
+                        <div class="modal fade"
+                             id="editSubCatModal"
+                             tabindex="-1"
+                             aria-labelledby="editSubCatModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="editSubCatModalLabel">Modal title</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="forms-sample" id="editSubCatForm">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                <label for="subCatName">Name</label>
+                                                <input type="text" class="form-control" id="subCatName" placeholder="Name">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="subCatDesc">Description about category (optional)</label>
+                                                <textarea class="form-control" id="subCatDesc" rows="4"></textarea>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="cat_id">Change Parent Category</label>
+                                                <select class="form-control" id="selectOptionForParentCategory">
+                                                </select>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-success" id="updateSubCategoryBtn">
+                                            Update
+                                            Changes
+                                        </button>
+                                        <button type="button" class="btn btn-danger" id="deleteSubCategoryBtn">
+                                            Delete
+                                            Sub-Category
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="alert alert-success alert-dismissible fade show"
+                                         id="alert-success"
+                                         role="alert">
+                                        <strong>Congratulations!</strong> Category has been updated</b>.
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="alert alert-danger alert-dismissible fade show"
+                                         id="alert-fail"
+                                         role="alert">
+                                        <div id="fail-content"></div>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="alert alert-danger alert-dismissible fade show"
+                                         id="alert-deleted"
+                                         role="alert">
+                                        Sub-Category <strong id="deletedSubCatName"></strong> has been deleted successfully.
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <h4 class="card-title">
+                                        All Sub-Categories
+                                        <a href='add-new-sub-cat' title="Add New Sub-Category">
+                                            <i class="mdi mdi-shape-circle-plus"
+                                               style="color: #f2125e !important;
+                                                      font-size: 20px !important;"></i>
+                                        </a>
+                                    </h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th style="width: 180px !important;">Sub-Category Name</th>
+                                                    <th>Description</th>
+                                                    <th style="width: 180px !important;">Parent Category</th>
+                                                    <th style="width: 150px !important;">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% if subcategories %}
+                                                    {% for subcategory in subcategories %}
+                                                        <tr id="tableRowId{{ subcategory.id }}">
+                                                            <td>{{ forloop.counter }}</td>
+                                                            <td id="tableSubCatName{{ subcategory.id }}">{{ subcategory.name }}</td>
+                                                            <td id="tableSubCatDesc{{ subcategory.id }}">{{ subcategory.description }}</td>
+                                                            <td id="tableSubCatParent{{ subcategory.id }}">{{ subcategory.parent }}</td>
+                                                            <td>
+                                                                <a href="javascript:openEditSubCategoryModal({{ subcategory.id }})"
+                                                                   style="text-decoration: none !important;">
+                                                                    <label class="badge badge-success" id="edit-cat">Edit</label>
+                                                                </a>
+                                                                <a href="javascript:openDeleteSubCategoryModal({{ subcategory.id }})"
+                                                                   style="text-decoration: none !important;">
+                                                                    <label class="badge badge-danger">Delete</label>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+<script>
+    let subCatID;
+    $(document).ready(function () {
+        $('#alert-success').hide();
+        $('#alert-fail').hide();
+        $("#alert-deleted").hide();
+    })
+    function openEditSubCategoryModal(id) {
+        $('#deleteSubCategoryBtn').hide();
+        $('#updateSubCategoryBtn').show();
+        subCatID = id;
+        $.ajax({
+            url: 'edit-sub-category/' + id,
+            success: function (data) {
+                if (data.success == 1) {
+                    $("#editSubCatModal").modal('show');
+                    $("#subCatName").val(data.name);
+                    $("#subCatDesc").val(data.description);
+                    let html = ''
+                    parent_data = JSON.parse(data['parent_data']);
+                    $.each(parent_data, function (key, val) {
+                        if (data.parentid == val.pk) {
+                            html += '<option value=' + val.pk + ' selected>' + val.fields['name'] + " (This is your current Parent ID)" + '</option>'
+                        } else {
+                            html += '<option value=' + val.pk + '>' + val.fields['name'] + '</option>'
+                        }
+                    })
+                    $("#selectOptionForParentCategory").html(html);
+                }
+            }
+        })
+    }
+    $("#updateSubCategoryBtn").on('click', function (e) {
+        $.ajax({
+            url: 'edit-sub-category/' + subCatID,
+            type: 'POST',
+            data: {
+                subCatId: subCatID,
+                subCatName: $("#subCatName").val(),
+                subCatDesc: $("#subCatDesc").val(),
+                parentID: $("#selectOptionForParentCategory").val(),
+                dataType: 'json',
+                csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function (data) {
+                if (data.success == 1) {
+                    $("#editSubCatModal").modal('hide');
+                    $("#tableSubCatName" + data.id).html(data.name);
+                    $("#tableSubCatDesc" + data.id).html(data.description);
+                    $("#tableSubCatParent" + data.id).html(data.parentCat);
+                    $('#editSubCatForm')[0].reset();
+                    $('#alert-success').show();
+                }
+                else {
+                    $('#alert-fail').show();
+                }
+            }
+        })
+    })
+    function openDeleteSubCategoryModal(id) {
+        $('#updateSubCategoryBtn').hide();
+        $('#deleteSubCategoryBtn').show();
+        catID = id;
+        param = 'abc';
+        url = 'delete-sub-category/' + id + "/" + param;
+        let abc;
+        $.ajax({
+            url: 'delete-sub-category/' + id + "/" + param,
+            data: {
+                type: 'GET',
+            },
+            success: function (data) {
+                if (data.success == 1) {
+                    $("#editSubCatModal").modal('show');
+                    $("#subCatName").val(data.name);
+                    $("#subCatDesc").val(data.description);
+                    let html = '<option value=' + data.parent_id + ' selected>' + data.parent_name + " (This is your current Parent ID)" + '</option>'
+                    $("#selectOptionForParentCategory").html(html);
+                }
+            }
+        })
+    }
+    let showErrorMessageToUserVar = ''
+    $("#deleteSubCategoryBtn").on('click', function (e) {
+        let param = 'delete';
+        let url = 'delete-sub-category/' + catID + "/" + param;
+        $.getJSON(url, function (data) {
+            if (data.success == 1) {
+                $("#deletedSubCatName").html(data.name);
+                $("#tableRowId" + data.id).remove();
+                $("#editSubCatModal").modal('hide');
+                $("#alert-deleted").show();
+            } else {
+                showErrorMessageToUserVar = data.message;
+                $("#editSubCatModal").modal('hide');
+                let html = ''
+                if (!data['message']) {
+                    html += '<strong>Oops!</strong> An error has occurred, <a href="view-all-sub-cats">click here to reload and try again.</a>'
+                } else {
+                    html += '<strong>Oops!</strong> An error has occurred, <a href="javascript:showErrorMessageToUser()">click here for more information.</a>'
+                }
+                $("#fail-content").html(html)
+                $('#alert-fail').show();
+            }
+        })
+    })
+    function showErrorMessageToUser() {
+        $("#editSubCatModal .modal-body").html('')
+        $('#deleteSubCategoryBtn').hide();
+        $("#editSubCatModal .modal-footer").html("<button type='button' onclick='location.reload()' class='btn btn-primary'>Reload and try again ?</button>")
+        $("#editSubCatModal .modal-body").html(showErrorMessageToUserVar)
+        $("#editSubCatModal").modal('show');
+    }
+</script>

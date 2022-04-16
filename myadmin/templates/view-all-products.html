@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>View All Products</title>
+    {% include 'includes.html' %}
+    <style>
+        table tr th {
+            font-size: 15px !important;
+        }
+
+        .description {
+            display: inline-block !important;
+            width: 150px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            padding: 30px 0px !important;
+        }
+
+        .editIcon,
+        .deleteIcon {
+            color: #f2125e !important;
+            font-size: 20px !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <div class="container-fluid page-body-wrapper">
+            {% include 'header.html' %}
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="row grid-margin stretch-card">
+                        <div class="card">
+                            <div class="card-body">
+                                {% comment %} delete product modal {% endcomment %}
+                                <!-- Modal -->
+                                <div class="modal fade" id="deleteProductModal" tabindex="-1" role="dialog"
+                                    aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteProductModalLabel">Confirm</h5>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">Do you really want to delete this Product ?</div>
+                                            <div class="modal-footer">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h4 class="card-title">
+                                    All Products
+                                    <a href='add-new-product' title="Add New Product">
+                                        <i class="mdi mdi-shape-circle-plus" style="color: #f2125e !important;
+                                                      font-size: 20px !important;"></i>
+                                    </a>
+                                </h4>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Name</th>
+                                                <th>Stock</th>
+                                                <th>Category</th>
+                                                <th>Initial Price</th>
+                                                <th>Discount</th>
+                                                <th>Final Price</th>
+                                                <th>Color</th>
+                                                <th>Description</th>
+                                                <th>Image</th>
+                                                <th style="width: 150px !important;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% if products %}
+                                            {% for product in products %}
+                                            <tr id="tableRowId{{ product.id }}">
+                                                <td>{{ forloop.counter }}</td>
+                                                <td id="productName">{{ product.name }}</td>
+                                                <td id="productQnty">{{ product.quantity }}</td>
+                                                <td id="productCatId">{{ product.parentname }}</td>
+                                                <td id="productInitialPrice">{{ product.initial_price }}</td>
+                                                <td id="productDiscount">{{ product.discount }}</td>
+                                                <td id="productFinalPrice">{{ product.final_price }}</td>
+                                                <td id="productColor">{{ product.color }}</td>
+                                                <td id="productDescription" class="description">
+                                                    {{ product.description }}
+                                                </td>
+                                                <td>
+                                                    <img id="productImg" src="media/{{ product.image }}">
+                                                </td>
+                                                <td>
+                                                    <a href="edit-product/{{ product.id }}"
+                                                        style="text-decoration: none !important;">
+                                                        <i class="mdi mdi-pencil-box-outline editIcon"
+                                                            title="Edit Product"></i>
+                                                    </a>
+                                                    <a href="javascript:deleteProduct({{ product.id }})"
+                                                        style="text-decoration: none !important;">
+                                                        <i class="mdi mdi-delete deleteIcon" data-toggle="modal"
+                                                            data-target="#deleteProductModal"
+                                                            title="Delete Product"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    $(document).ready(function () {
+        $("#deleteProductModal").hide();
+    })
+    function deleteProduct(id) {
+        $("#deleteProductModal").show();
+        html = '<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button >'
+        html += '<a href="delete-product/' + id + '"><button type="button" class="btn btn-danger">Yes</button</a>'
+        $("#deleteProductModal .modal-footer").html(html)
+    }
+</script>

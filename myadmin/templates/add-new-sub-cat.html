@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Add New Sub-Category</title>
+        {% include 'includes.html' %}
+    </head>
+    <body>
+        <div class="container-scroller">
+            <div class="container-fluid page-body-wrapper">
+                {% include 'header.html' %}
+                <div class="main-panel">
+                    <div class="content-wrapper">
+                        <div class="col-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="alert alert-success alert-dismissible fade show"
+                                         id="alert-success"
+                                         role="alert">
+                                        <strong>Congratulations!</strong> New Sub-Category has been created under <b id="alert_cat_name"></b>.
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="alert alert-danger alert-dismissible fade show"
+                                         id="alert-fail"
+                                         role="alert">
+                                        <strong>Oops!</strong> An error has occurred, please try again later.
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <h4 class="card-title">
+                                        Add new Sub-Category
+                                        <a href='view-all-sub-cats' title="Go back to all Sub-Categories">
+                                            <i class="mdi mdi-keyboard-backspace"
+                                               style="color: #f2125e !important;
+                                                      font-size: 20px !important;"></i>
+                                        </a>
+                                    </h4>
+                                    <form class="forms-sample" id="add_new_sub_cat_form">
+                                        {% csrf_token %}
+                                        <div class="form-group">
+                                            <label for="sub_cat_name">Name</label>
+                                            <input type="text" class="form-control" id="sub_cat_name" placeholder="Name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="sub_cat_desc">Description about sub-category (optional)</label>
+                                            <textarea class="form-control" id="sub_cat_desc" rows="4"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="cat_id">Select a Category</label>
+                                            <select class="form-control">
+                                                {% if notice %}
+                                                    <option>
+                                                        {{ notice }}
+                                                    </option>
+                                                {% else %}
+                                                    <option>
+                                                        Select a Parent Category
+                                                    </option>
+                                                    {% for category in categories %}
+                                                        <option id="cat_id" value="{{ category.id }}">
+                                                            {{ category.name }}
+                                                        </option>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary mr-2">Submit</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+<script>
+    $(document).ready(function() {
+        $('#alert-success').hide();
+        $('#alert-fail').hide();
+    })
+    $('#add_new_sub_cat_form').on('submit', function(e){
+        e.preventDefault();
+        $.ajax({
+            url: 'add-new-sub-cat',
+            type: 'POST',
+            data: {
+                sub_cat_name : $('#sub_cat_name').val(),
+                sub_cat_desc : $('#sub_cat_desc').val(),
+                cat_id : $('#cat_id').val(),
+                csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function (success) {
+                if (success == 1) {
+                    $('#alert_cat_name').html($('#cat_id').html())
+                    $('#alert-success').show();
+                    $('#add_new_sub_cat_form')[0].reset();
+                }
+                else{
+                    $('#alert-fail').show();
+                }
+            }
+        })
+    });
+</script>

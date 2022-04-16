@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Home</title>
+    {% include 'includes.html' %}
+
+    <style>
+        .showChart {
+            display: block !important;
+            height: 190px !important;
+            width: 382px !important;
+        }
+
+        .hideChart {
+            display: none !important;
+        }
+
+        .averageSlesCount {
+            margin: auto !important;
+            margin-top: 3% !important;
+            font-size: 118px !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <div class="container-fluid page-body-wrapper">
+            {% include 'header.html' %}
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <h3 class="mb-0 font-weight-bold">
+                                Admin Name
+                            </h3>
+                            <p>
+                                Your last login: 21h ago from newzealand.
+                            </p>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center justify-content-md-end">
+                                <div class="mb-3 mb-xl-0 pr-1">
+                                    <div class="dropdown">
+                                        <button class="btn bg-white btn-sm dropdown-toggle btn-icon-text border mr-2"
+                                            type="button" id="currMonth" data-toggle="dropdown" aria-haspopup="true"
+                                            aria-expanded="false">
+                                            <i class="typcn typcn-calendar-outline mr-2"></i>
+                                        </button>
+                                        <div class="dropdown-menu" id="showAllMonthsToFilterProductsDropDown"
+                                            aria-labelledby="dropdownMenuSizeButton3" data-x-placement="top-start">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pr-1 mb-3 mr-2 mb-xl-0">
+                                    <button type="button" class="btn btn-sm bg-white btn-icon-text border">
+                                        <i class="typcn typcn-arrow-forward-outline mr-2"></i>Export
+                                    </button>
+                                </div>
+                                <div class="pr-1 mb-3 mb-xl-0">
+                                    <button type="button" class="btn btn-sm bg-white btn-icon-text border">
+                                        <i class="typcn typcn-info-large-outline mr-2"></i>info
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row  mt-3">
+                        <div class="col-xl-5 d-flex grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex flex-wrap justify-content-between">
+                                        <h4 class="card-title mb-3" id="totalProducts">
+
+                                        </h4>
+                                        <canvas id="barChartStacked"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-5 d-flex grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex flex-wrap justify-content-between">
+                                        <h4 class="card-title mb-3" id="averageSales">
+
+                                        </h4>
+                                    </div>
+                                    <div class="row">
+                                        <div class="averageSlesCount"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="col-xl-4 d-flex grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex flex-wrap justify-content-between">
+                                        <h4 class="card-title mb-3">
+                                            New Users in Last Month
+                                        </h4>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="row">
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> -->
+                    </div>
+
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                <footer class="footer">
+                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
+                        <span class="text-center text-sm-left d-block d-sm-inline-block">Copyright © <a
+                                href="https://www.bootstrapdash.com/" target="_blank">bootstrapdash.com</a> 2020</span>
+                        <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Free <a
+                                href="https://www.bootstrapdash.com/" target="_blank">Bootstrap dashboard </a>templates
+                            from Bootstrapdash.com</span>
+                    </div>
+                </footer>
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+</body>
+
+</html>
+<script>
+    let productsPerWeek = null
+    let month = null
+    let labels = []
+    function weekCount(year, month_number, startDayOfWeek) {
+        // month_number is in the range 1..12
+        // Get the first day of week week day (0: Sunday, 1: Monday, ...)
+        var firstDayOfWeek = startDayOfWeek || 0;
+        var firstOfMonth = new Date(year, month_number - 1, 1);
+        var lastOfMonth = new Date(year, month_number, 0);
+        var numberOfDaysInMonth = lastOfMonth.getDate();
+        var firstWeekDay = (firstOfMonth.getDay() - firstDayOfWeek + 7) % 7;
+        var used = firstWeekDay + numberOfDaysInMonth;
+        return Math.ceil(used / 7);
+    }
+
+    function getLabelsAndProductsForChart(month = null) {
+        if (labels.length > 0) {
+            $.each(labels, function (key, value) {
+                labels.pop();
+            })
+        }
+        productsPerWeek = getProductsCountByWeekForChart(month)
+        let total_weeks = weekCount(productsPerWeek['year'], productsPerWeek['month'], 0)
+        let week = []
+        let i = 1
+        while (i <= total_weeks) {
+            week.push(i.toString())
+            i += 1
+        }
+        $.each(week, function (key, value) {
+            labels.push("Week: " + value.toString() + "\n" + "Month: " + productsPerWeek['month'])
+        })
+        $("#totalProducts").html("Total Products in " + productsPerWeek['monthName'])
+        $("#averageSales").html("Average Sales in " + productsPerWeek['monthName'])
+    }
+    // chart
+    function createChart(productsPerWeek, labels) {
+        var barChartStackedData = {
+            labels: labels,
+            datasets: [{
+                label: 'Products',
+                data: productsPerWeek,
+                backgroundColor: [
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                ],
+                borderColor: [
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                    '#2b80ff',
+                ],
+                borderWidth: 1,
+                fill: false
+            },
+            {
+                label: '',
+                data: [],
+                backgroundColor: [
+                    '#fff',
+                ],
+                borderColor: [
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                    '#bfccda',
+                ],
+                borderWidth: 1,
+                fill: false
+            }]
+        };
+        var barChartStackedOptions = {
+            scales: {
+                xAxes: [{
+                    display: false,
+                    stacked: true,
+                    gridLines: {
+                        display: false //this will remove only the label
+                    },
+                }],
+                yAxes: [{
+                    stacked: true,
+                    display: false,
+                }]
+            },
+            legend: {
+                display: false,
+                position: "bottom"
+            },
+            legendCallback: function (chart) {
+                var text = [];
+                text.push('<div class="row">');
+                for (var i = 0; i < chart.data.datasets.length; i++) {
+                    text.push('<div class="col-sm-5 mr-3 ml-3 ml-sm-0 mr-sm-0 pr-md-0 mt-3"><div class="row align-items-center"><div class="col-2"><span class="legend-label" style="background-color:' + chart.data.datasets[i].backgroundColor[i] + '"></span></div><div class="col-9"><p class="text-dark m-0">' + chart.data.datasets[i].label + '</p></div></div>');
+                    text.push('</div>');
+                }
+                text.push('</div>');
+                return text.join("");
+            },
+            elements: {
+                point: {
+                    radius: 0
+                }
+            }
+
+        };
+        var barChartCanvas = $("#barChartStacked").get(0).getContext("2d");
+        var barChart = new Chart(barChartCanvas, {
+            type: 'bar',
+            data: barChartStackedData,
+            options: barChartStackedOptions
+        });
+    }
+
+    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    let htmlForAllMonthsDropDown = ''
+    $.each(months, function (key, value) {
+        htmlForAllMonthsDropDown += '<option class="dropdown-item" id="selectMonthToFilter">' + value + '</option>';
+    })
+    $("#showAllMonthsToFilterProductsDropDown").html(htmlForAllMonthsDropDown);
+    $("#showAllMonthsToFilterProductsDropDown #selectMonthToFilter").click(function () {
+        month = new Date(Date.parse(this.value + " 1, 2012")).getMonth() + 1
+        getLabelsAndProductsForChart(month)
+        createChart(productsPerWeek, labels)
+    })
+    function getProductsCountByWeekForChart(month) {
+        if (month) {
+            url = 'get-products-count-by-week/' + parseInt(month)
+        } else {
+            const d = new Date();
+            let month = d.getMonth();
+            url = 'get-products-count-by-week/' + (month + 1)
+        } let arr = [];
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: url,
+            success: function (data) {
+                arr = data.countProductsInEachWeek
+                arr['month'] = data.month
+                arr['year'] = data.year
+                arr['monthName'] = data.monthName
+                arr['noProducts'] = data.noProducts
+                $("#currMonth").html(data.monthName);
+                $('.averageSlesCount').html(data.totalProducts)
+            }
+        })
+        return arr;
+    }
+
+    $(document).ready(function () {
+        getLabelsAndProductsForChart()
+        createChart(productsPerWeek, labels)
+    })
+</script>

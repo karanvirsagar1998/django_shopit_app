@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Add New Products</title>
+        {% include 'includes.html' %}
+    </head>
+    <body>
+        <div class="container-scroller">
+            <div class="container-fluid page-body-wrapper">
+                {% include 'header.html' %}
+                <div class="main-panel">
+                    <div class="content-wrapper">
+                        <div class="col-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">
+                                        Add new Products
+                                        <a href='view-all-products' title="Go back to all Products">
+                                            <i class="mdi mdi-shape-circle-plus"
+                                               style="color: #f2125e !important;
+                                                      font-size: 20px !important;"></i>
+                                        </a>
+                                    </h4>
+                                    {% if product %}
+                                        <form class="form-sample"
+                                              method="post"
+                                              action="/myadmin/edit-product/{{ product.id }}"
+                                              enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <p class="card-description">
+                                                Product Information
+                                            </p>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-4 col-form-label">Product Name</label>
+                                                        <div class="col-sm-8">
+                                                            <input required type="text" name="name" class="form-control" value={{ product.name }}>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-3 col-form-label">Quantity</label>
+                                                        <div class="col-sm-9">
+                                                            <input required type="text" name="quantity" class="form-control" value={{ product.quantity }}>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-4 col-form-label">Type of Product</label>
+                                                        <div class="col-sm-8">
+                                                            <select class="form-control" name="sub_category_id" required>
+                                                                <option>
+                                                                    Select type of product
+                                                                </option>
+                                                                {% for subcategory in subcategories %}
+                                                                    {% if subcategory.id == product.sub_category_id %}
+                                                                        <option value="{{ subcategory.id }}" id="sub_category_id" selected>
+                                                                            {{ subcategory.name }}
+                                                                        </option>
+                                                                    {% else %}
+                                                                        <option value="{{ subcategory.id }}" id="sub_category_id">
+                                                                            {{ subcategory.name }}
+                                                                        </option>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-3 col-form-label">Initial Price</label>
+                                                        <div class="col-sm-9">
+                                                            <input required class="form-control" id="initialPrice" name="initial_price" oninput="calculateFinalPrice()" placeholder="Striked" value={{ product.initial_price }}>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-3 col-form-label">Discount</label>
+                                                        <div class="form-check">
+                                                            <label class="form-check-label">
+                                                                <input type="checkbox" class="form-check-input">
+                                                                <i class="input-helper"></i>
+                                                            </label>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <input class="form-control" id="discountPrice" name="discount" oninput="calculateFinalPrice()" value={{ product.discount }}>
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <input class="form-control" disabled placeholder="%">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-3 col-form-label">Final Price</label>
+                                                        <div class="col-sm-9">
+                                                            <input required class="form-control" id="finalPrice" readonly="true"
+                                                                name="final_price" placeholder="Final Price" value={{product.final_price }}>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <p class="card-description">
+                                                    Details
+                                                </p>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Color</label>
+                                                            <div class="col-sm-9">
+                                                                <input required type="text" class="form-control" name="color" value={{ product.color }}>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Description</label>
+                                                            <div class="col-sm-9">
+                                                                <textarea class="form-control"
+                                                                          id="cat_desc"
+                                                                          rows="4"
+                                                                          name="description"
+                                                                          style="resize:auto !important;">{{product.description}}</textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Image</label>
+                                                            <div class="col-sm-9">
+                                                                <input required
+                                                                       type="file"
+                                                                       id="productImg"
+                                                                       name="product_img"
+                                                                       onchange="showUpdatePreview(this);">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-2 col-form-label">Preview</label>
+                                                        </div>
+                                                        <div class="col-sm-10">
+                                                            <img id="previewProductUpdateImg"
+                                                                 src="{{ product.image.url }}"
+                                                                 style="width: 100% !important;
+                                                                        height: 100% !important;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button type="submit"
+                                                        id="submitUpdateProductForm"
+                                                        class="btn btn-primary mr-2">Update</button>
+                                            </form>
+                                        {% else %}
+                                            <form class="form-sample"
+                                                  method="post"
+                                                  action="/myadmin/add-new-product/"
+                                                  enctype="multipart/form-data">
+                                                {% csrf_token %}
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-4 col-form-label">Product Name</label>
+                                                            <div class="col-sm-8">
+                                                                <input required type="text" name="name" class="form-control">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Quantity</label>
+                                                            <div class="col-sm-9">
+                                                                <input required type="text" name="quantity" class="form-control">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-4 col-form-label">Type of Product</label>
+                                                            <div class="col-sm-8">
+                                                                <select required class="form-control" name="sub_category_id" >
+                                                                    {% if notice %}
+                                                                        <option>
+                                                                            {{ notice }}
+                                                                        </option>
+                                                                    {% else %}
+                                                                        <option>
+                                                                            Select type of product
+                                                                        </option>
+                                                                        {% for subcategory in subcategories %}
+                                                                            <option value="{{ subcategory.id }}" id="sub_category_id">
+                                                                                {{ subcategory.name }}
+                                                                            </option>
+                                                                        {% endfor %}
+                                                                    {% endif %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Initial Price</label>
+                                                            <div class="col-sm-9">
+                                                                <input required
+                                                                       class="form-control"
+                                                                       id="initialPrice"
+                                                                       name="initial_price"
+                                                                       oninput="calculateFinalPrice()"
+                                                                       placeholder="Striked">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Discount</label>
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="checkbox" class="form-check-input">
+                                                                    <i class="input-helper"></i>
+                                                                </label>
+                                                            </div>
+                                                            <div class="col-sm-3">
+                                                                <input class="form-control"
+                                                                       id="discountPrice"
+                                                                       name="discount"
+                                                                       oninput="calculateFinalPrice()">
+                                                            </div>
+                                                            <div class="col-sm-2">
+                                                                <input class="form-control" disabled placeholder="%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Final Price</label>
+                                                            <div class="col-sm-9">
+                                                                <input required
+                                                                       class="form-control"
+                                                                       id="finalPrice"
+                                                                       readonly="true"
+                                                                       name="final_price"
+                                                                       placeholder="Final Price">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <p class="card-description">
+                                                    Details
+                                                </p>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Color</label>
+                                                            <div class="col-sm-9">
+                                                                <input required type="text" class="form-control" name="color">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Description</label>
+                                                            <div class="col-sm-9">
+                                                                <textarea class="form-control"
+                                                                          id="cat_desc"
+                                                                          rows="4"
+                                                                          name="description"
+                                                                          style="resize:auto !important;"></textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">Image</label>
+                                                            <div class="col-sm-9">
+                                                                <input required
+                                                                       type="file"
+                                                                       id="productImg"
+                                                                       name="product_img"
+                                                                       onchange="showPreview(this);">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-2 col-form-label">Preview</label>
+                                                        </div>
+                                                        <div class="col-sm-10">
+                                                            <img id="previewProductImg"
+                                                                 src=""
+                                                                 style="width: 100% !important;
+                                                                        height: 100% !important;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button type="submit" id="submitAddProductForm" class="btn btn-primary mr-2">Add</button>
+                                            {% endif %}
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </html>
+    <script>
+    $(document).ready(function () {
+        $('#previewProductImg').hide();
+    })
+    function calculateFinalPrice() {
+        let discountPrice = $("#initialPrice").val() - (($("#discountPrice").val() / 100) * $("#initialPrice").val());
+        $("#finalPrice").val(discountPrice)
+    }
+    function showPreview(input) {
+        if (input.files && input.files[0]) {
+            var src = URL.createObjectURL(input.files[0])
+            $('#previewProductImg').attr('src', src)
+            $('#previewProductImg').show();
+        }
+    }
+    function showUpdatePreview(input) {
+        if (input.files && input.files[0]) {
+            var src = URL.createObjectURL(input.files[0])
+            $('#previewProductUpdateImg').attr('src', src)
+            $('#previewProductUpdateImg').show();
+        }
+    }
+
+
+    </script>

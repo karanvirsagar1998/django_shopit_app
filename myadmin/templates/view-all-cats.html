@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>View All Categories</title>
+        {% include 'includes.html' %}
+    </head>
+    <body>
+        <div class="container-scroller">
+            <div class="container-fluid page-body-wrapper">
+                {% include 'header.html' %}
+                <div class="main-panel">
+                    <div class="content-wrapper">
+                        <!-- Edit Category  modal -->
+                        <!-- Modal -->
+                        <div class="modal fade"
+                             id="edit-cat-Modal"
+                             tabindex="-1"
+                             aria-labelledby="edit-cat-ModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="edit-cat-ModalLabel">Modal title</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="forms-sample" id="add_new_cat_form">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                <label for="cat_name">Name</label>
+                                                <input type="text" class="form-control" id="cat_name" placeholder="Name">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="cat_desc">Description about category (optional)</label>
+                                                <textarea class="form-control" id="cat_desc" rows="4"></textarea>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-success" id="updateCategoryBtn">
+                                            Update
+                                            Changes
+                                        </button>
+                                        <button type="button" class="btn btn-danger" id="deleteCategoryBtn">
+                                            Delete
+                                            Category
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="alert alert-success alert-dismissible fade show"
+                                         id="alert-success"
+                                         role="alert">
+                                        <strong>Congratulations!</strong>Category has been updated</b>.
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="alert alert-danger alert-dismissible fade show"
+                                         id="alert-fail"
+                                         role="alert">
+                                        <div id="fail-content"></div>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="alert alert-danger alert-dismissible fade show"
+                                         id="alert-deleted"
+                                         role="alert">
+                                        Category <strong id="deletedCatName"></strong> has been deleted successfully.
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <h4 class="card-title">
+                                        All Categories
+                                        <a href='add-new-cat' title="Add New Category">
+                                            <i class="mdi mdi-shape-circle-plus"
+                                               style="color: #f2125e !important;
+                                                      font-size: 20px !important;"></i>
+                                        </a>
+                                    </h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Category Name</th>
+                                                    <th>Description</th>
+                                                    <th style="width: 150px !important;">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% if categories %}
+                                                    {% for category in categories %}
+                                                        <tr id="table_row_id{{ category.id }}">
+                                                            <td>{{ forloop.counter }}</td>
+                                                            <td id="table_cat_name{{ category.id }}">{{ category.name }}</td>
+                                                            <td id="table_cat_desc{{ category.id }}">{{ category.description }}</td>
+                                                            <td>
+                                                                <a href="javascript:openEditCategoryModal({{ category.id }})"
+                                                                   style="text-decoration: none !important;">
+                                                                    <label class="badge badge-success" id="edit-cat">Edit</label>
+                                                                </a>
+                                                                <a href="javascript:openDeleteCategoryModal({{ category.id }})"
+                                                                   style="text-decoration: none !important;">
+                                                                    <label class="badge badge-danger">Delete</label>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+<script>
+    let catID;
+    $(document).ready(function () {
+        $('#alert-success').hide();
+        $('#alert-fail').hide();
+        $("#alert-deleted").hide();
+    })
+    function openEditCategoryModal(id) {
+        $('#deleteCategoryBtn').hide();
+        $('#updateCategoryBtn').show();
+        catID = id;
+        $.ajax({
+            url: 'edit-category/' + id,
+            success: function (data) {
+                if (data.success == 1) {
+                    $("#edit-cat-Modal").modal('show');
+                    $("#cat_name").val(data.name);
+                    $("#cat_desc").val(data.description);
+                }
+            }
+        })
+    }
+
+    $("#updateCategoryBtn").on('click', function (e) {
+        $.ajax({
+            url: 'edit-category/' + catID,
+            type: 'POST',
+            data: {
+                cat_id: catID,
+                cat_name: $("#cat_name").val(),
+                cat_desc: $("#cat_desc").val(),
+                dataType: 'json',
+                csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function (data) {
+                if (data.success == 1) {
+                    $("#edit-cat-Modal").modal('hide');
+                    $("#table_cat_name" + data.id).html(data.name);
+                    $("#table_cat_desc" + data.id).html(data.description);
+                    $('#add_new_cat_form')[0].reset();
+                    $('#alert-success').show();
+                }
+                else {
+                    $('#alert-fail').show();
+                }
+            }
+        })
+    })
+    function openDeleteCategoryModal(id) {
+        $('#updateCategoryBtn').hide();
+        $('#deleteCategoryBtn').show();
+        catID = id;
+        param = 'abc';
+        url = 'delete-category/' + id + "/" + param;
+        let abc;
+        $.ajax({
+            url: 'delete-category/' + id + "/" + param,
+            data: {
+                type: 'GET',
+            },
+            success: function (data) {
+                if (data.success == 1) {
+                    $("#edit-cat-Modal").modal('show');
+                    $("#cat_name").val(data.name);
+                    $("#cat_desc").val(data.description);
+                }
+            }
+        })
+    }
+    let showErrorMessageToUserVar = ''
+    $("#deleteCategoryBtn").on('click', function (e) {
+        let param = 'delete';
+        let url = 'delete-category/' + catID + "/" + param;
+        $.getJSON(url, function (data) {
+            if (data.success == 1) {
+                $("#deletedCatName").html(data.name);
+                $("#table_row_id" + data.id).remove();
+                $("#edit-cat-Modal").modal('hide');
+                $("#alert-deleted").show();
+            } else {
+                showErrorMessageToUserVar = data.message;
+                $("#edit-cat-Modal").modal('hide');
+                let html = ''
+                if (!data['message']) {
+                    html += '<strong>Oops!</strong> An error has occurred, <a href="view-all-cats">click here to reload and try again.</a>'
+                } else {
+                    html += '<strong>Oops!</strong> An error has occurred, <a href="javascript:showErrorMessageToUser()">click here for more information.</a>'
+                }
+                $("#fail-content").html(html)
+                $('#alert-fail').show();
+            }
+        })
+    })
+    function showErrorMessageToUser() {
+        $("#edit-cat-Modal .modal-body").html('')
+        $('#deleteCategoryBtn').hide();
+        $("#edit-cat-Modal .modal-footer").html("<button type='button' onclick='location.reload()' class='btn btn-primary'>Reload and try again ?</button>")
+        $("#edit-cat-Modal .modal-body").html(showErrorMessageToUserVar)
+        $("#edit-cat-Modal").modal('show');
+    }
+</script>
